@@ -8,7 +8,7 @@ When you request your data from spotify they give you a bunch of files, some of 
 $ git clone https://github.com/postrequest69/spotify-data-parser.git
 ```
 
-If you don't know how to get your spotify data you can (watch this)[https://www.youtube.com/watch?v=ghs9XMdvBXg]. 
+If you don't know how to get your spotify data you can [watch this](https://www.youtube.com/watch?v=ghs9XMdvBXg). 
 
 Put your "spotify data" folder in your project folder.
 
