@@ -135,6 +135,7 @@ func main() {
 	}
 	if len(toPrint) < 1 {
 		fmt.Println(red("No spotify data detected! Make sure you have a foled named \"spotify data\" containing your streaming history!\n"))
+		return
 	}
 	fmt.Println(yellow("\nYou've listened to " + fmt.Sprint(len(toPrint)) + " artists total!\n"))
 	fmt.Println(yellow("You've listened to a whopping " + fmt.Sprint(totalSongsPlayed) + " songs elapsing a total:\n	MilliSeconds: " + fmt.Sprint(totaltimelistened) + "ms\n	Seconds: " + fmt.Sprint(totaltimelistened/1000) + "s\n	Minutes: " + fmt.Sprint((totaltimelistened/1000)/60) + "min\n	Hours: " + fmt.Sprint(((totaltimelistened/1000)/60)/60) + "h\n	Days: " + fmt.Sprint((((totaltimelistened/1000)/60)/60)/24) + "D"))
