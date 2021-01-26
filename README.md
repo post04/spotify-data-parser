@@ -22,6 +22,6 @@ Easy to use!
 
 My most listened artist and the most listened songs of that artist.
 
-![](https://media.discordapp.net/attachments/287739410286379019/803710034306662470/unknown.png)
+![](https://media.discordapp.net/attachments/798440828958933004/803711743770886195/unknown.png)
 
 ![](https://media.discordapp.net/attachments/287739410286379019/803707581263904828/unknown.png)
