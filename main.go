@@ -202,11 +202,11 @@ func main() {
 	}
 	fmt.Println(yellow("\nYou've listened to " + fmt.Sprint(len(toPrint)) + " artists total!\n"))
 	fmt.Println(yellow("You've listened to a whopping " + fmt.Sprint(totalSongsPlayed) + " songs elapsing a total:\n	MilliSeconds: " + fmt.Sprint(totaltimelistened) + "ms\n	Seconds: " + fmt.Sprint(totaltimelistened/1000) + "s\n	Minutes: " + fmt.Sprint((totaltimelistened/1000)/60) + "min\n	Hours: " + fmt.Sprint(((totaltimelistened/1000)/60)/60) + "h\n	Days: " + fmt.Sprint((((totaltimelistened/1000)/60)/60)/24) + "D"))
-	fmt.Println(red("\nI am now sorting all your data! This may take a few seconds depending on how much data you have!\n"))
+	fmt.Println(red("\nI am now sorting all your data! This may take a few seconds depending on how much data you have!"))
 	start := makeTimestamp()
 	mainSlice := makeMainSlice(toPrint)
 	printdata, logdata := makePrintAndLogStrings(mainSlice)
-	fmt.Println(yellow("\nDone storting in " + fmt.Sprint(makeTimestamp()-start) + "ms!\n"))
+	fmt.Println(yellow("\nDone sorting in " + fmt.Sprint(makeTimestamp()-start) + "ms!\n"))
 	var option1 string
 	fmt.Print(green("Do you wish to print the data to console (y / yes): "))
 	fmt.Scanln(&option1)
