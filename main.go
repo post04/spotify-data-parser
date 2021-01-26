@@ -11,12 +11,22 @@ import (
 	"time"
 )
 
+//Main struct used to hold data
 type artistStruct struct {
+	Name             string
+	TimesPlayed      int
+	TimeListened     int
+	TimeBreakdown    map[string]*timeBreakdownStruct
+	EndTimeBreakdown []*timeBreakdownStruct
+}
+
+type timeBreakdownStruct struct {
 	Name         string
 	TimesPlayed  int
 	TimeListened int
 }
 
+//Spotify related struct, not used to print justt used to parse the data.
 type mainStruct []struct {
 	EndTime    string `json:"endTime"`
 	ArtistName string `json:"artistName"`
@@ -54,6 +64,14 @@ func color(colorString string) func(...interface{}) string {
 func makeMainSlice(tosort map[string]*artistStruct) []*artistStruct {
 	var mainSlice []*artistStruct
 	for _, data := range tosort {
+		var timeBreakdown []*timeBreakdownStruct
+		for _, song := range data.TimeBreakdown {
+			timeBreakdown = append(timeBreakdown, song)
+		}
+		sort.Slice(timeBreakdown, func(i, j int) bool {
+			return timeBreakdown[i].TimeListened > timeBreakdown[j].TimeListened
+		})
+		data.EndTimeBreakdown = timeBreakdown
 		mainSlice = append(mainSlice, data)
 	}
 	sort.Slice(mainSlice, func(i, j int) bool {
@@ -64,15 +82,24 @@ func makeMainSlice(tosort map[string]*artistStruct) []*artistStruct {
 
 func makePrintAndLogStrings(tomake []*artistStruct) (string, string) {
 	var return1, return2 string
-	//return1 = color return2 = nocolor
 	for pos, artist := range tomake {
-		return1 += fmt.Sprintf("%s.) %s\n	Times played: %s\n	Time listened total (seconds): %s\n", fmt.Sprint(pos+1), artist.Name, fmt.Sprint(artist.TimesPlayed), fmt.Sprint(artist.TimeListened))
-		return2 += green(fmt.Sprintf("%s.) %s\n", fmt.Sprint(pos), artist.Name)) + red(fmt.Sprintf("	Times played: %s\n	Time listened total (seconds): %s\n", fmt.Sprint(artist.TimesPlayed), fmt.Sprint(artist.TimeListened)))
+		//No color
+		return1 += fmt.Sprintf("%s.) %s\n	Times played: %s\n	Time listened total (seconds): %s\n	Song tree:\n", fmt.Sprint(pos+1), artist.Name, fmt.Sprint(artist.TimesPlayed), fmt.Sprint(artist.TimeListened))
+
+		//Color
+		return2 += green(fmt.Sprintf("%s.) %s\n", fmt.Sprint(pos+1), artist.Name)) + red(fmt.Sprintf("	Times played: %s\n	Time listened total (seconds): %s\n", fmt.Sprint(artist.TimesPlayed), fmt.Sprint(artist.TimeListened))) + green("	Song tree:\n")
+
+		//Add song breakdown
+		for songPos, song := range artist.EndTimeBreakdown {
+			//No color
+			return1 += fmt.Sprintf("		%s.) %s\n			Times played: %s\n			Time listened total (seconds): %s\n", fmt.Sprint(songPos+1), song.Name, fmt.Sprint(song.TimesPlayed), fmt.Sprint(song.TimeListened))
+
+			//Color
+			return2 += green(fmt.Sprintf("		%s.) %s\n", fmt.Sprint(songPos+1), song.Name)) + red(fmt.Sprintf("			Times played: %s\n			Time listened total (seconds): %s\n", fmt.Sprint(song.TimesPlayed), fmt.Sprint(song.TimeListened)))
+		}
 	}
 	return return2, return1
 }
-
-//https://stackoverflow.com/a/10510783
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -90,8 +117,11 @@ func main() {
 		fmt.Println(red("You need a folder named \"spotify data\" with your streaming history in it!"))
 		return
 	}
+
 	var totaltimelistened = 0
 	var totalSongsPlayed = 0
+
+	// Main map of artist structs
 	toPrint := map[string]*artistStruct{}
 	var num = 0
 	var tmp string
@@ -118,24 +148,57 @@ func main() {
 			fmt.Println("Error parsing file StreamingHistory"+fmt.Sprint(i)+".json with error:", err)
 			return
 		}
+		//Loop thru every song
 		for _, song := range allArtists {
+			//Add to totals
 			totaltimelistened += song.MsPlayed
 			totalSongsPlayed++
+			//Check if the artist exists in the map
 			if _, ok := toPrint[song.ArtistName]; ok {
+				//If it does, update existing values
 				toPrint[song.ArtistName].TimeListened += song.MsPlayed / 1000
 				toPrint[song.ArtistName].TimesPlayed++
+				//Check if the song exists in the artist map
+				if _, ok := toPrint[song.ArtistName].TimeBreakdown[song.TrackName]; ok {
+					//If it does, update existing values
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName].TimeListened += song.MsPlayed / 1000
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName].TimesPlayed++
+				} else {
+					//if it doesn't, create a new value
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName] = &timeBreakdownStruct{
+						Name:         song.TrackName,
+						TimeListened: song.MsPlayed / 1000,
+						TimesPlayed:  1,
+					}
+				}
 			} else {
+				//if it doesn't, create a new value
 				toPrint[song.ArtistName] = &artistStruct{
-					Name:         song.ArtistName,
-					TimeListened: song.MsPlayed / 1000,
-					TimesPlayed:  1,
+					Name:             song.ArtistName,
+					TimeListened:     song.MsPlayed / 1000,
+					TimesPlayed:      1,
+					TimeBreakdown:    make(map[string]*timeBreakdownStruct),
+					EndTimeBreakdown: []*timeBreakdownStruct{},
+				}
+				//Check if the song exists in the artist map
+				if _, ok := toPrint[song.ArtistName].TimeBreakdown[song.TrackName]; ok {
+					//if it does, update existing values
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName].TimeListened += song.MsPlayed / 1000
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName].TimesPlayed++
+				} else {
+					//if not, create a new value
+					toPrint[song.ArtistName].TimeBreakdown[song.TrackName] = &timeBreakdownStruct{
+						Name:         song.TrackName,
+						TimeListened: song.MsPlayed / 1000,
+						TimesPlayed:  1,
+					}
 				}
 			}
 		}
 	}
+	//end of building map
 	if len(toPrint) < 1 {
 		fmt.Println(red("No spotify data detected! Make sure you have a foled named \"spotify data\" containing your streaming history!\n"))
-		return
 	}
 	fmt.Println(yellow("\nYou've listened to " + fmt.Sprint(len(toPrint)) + " artists total!\n"))
 	fmt.Println(yellow("You've listened to a whopping " + fmt.Sprint(totalSongsPlayed) + " songs elapsing a total:\n	MilliSeconds: " + fmt.Sprint(totaltimelistened) + "ms\n	Seconds: " + fmt.Sprint(totaltimelistened/1000) + "s\n	Minutes: " + fmt.Sprint((totaltimelistened/1000)/60) + "min\n	Hours: " + fmt.Sprint(((totaltimelistened/1000)/60)/60) + "h\n	Days: " + fmt.Sprint((((totaltimelistened/1000)/60)/60)/24) + "D"))
